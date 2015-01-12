@@ -1,19 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class WorldObject : MonoBehaviour {
-
-	public string name;
+public abstract class WorldObject : MonoBehaviour {
+	
 	public int hitPoints;
 	public int max_hit_points;
+	public Player owner;
 
 	// Use this for initialization
-	void Start () {
-	
-	}
+	protected abstract void Start ();
 	
 	// Update is called once per frame
-	void Update () {
-	
-	}
+	protected abstract void Update ();
 }

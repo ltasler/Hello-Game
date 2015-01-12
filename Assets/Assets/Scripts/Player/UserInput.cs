@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using RTS;
 
 public class UserInput : MonoBehaviour {
 
@@ -17,17 +18,29 @@ public class UserInput : MonoBehaviour {
 	private const int PAN_SPEED = 40;
 	private const int PAN_ANGLE_MIN = 30;
 	private const int PAN_ANGLE_MAX = 70;
+
+	//selection box start coordinate, end coordinate (on screen) and texture
+	private Vector2 startBoxPos, endBoxPos;
+	public Texture2D selectionBoxTexture;
 	
 	// Use this for initialization
 	void Start () {
-		player = transform.root.GetComponent<Player>();
+		player = GetComponent<Player>();
+		startBoxPos = Vector2.zero;
+		endBoxPos =  Vector2.zero;
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		if(player && player.human) {
 			moveCamera();
+			MouseActivity();
 		}
+	}
+
+	void OnGUI() {
+		if(startBoxPos != Vector2.zero && endBoxPos != Vector2.zero)
+			GUI.DrawTexture(new Rect(startBoxPos.x, Screen.height - startBoxPos.y, endBoxPos.x - startBoxPos.x, -1 * ((Screen.height - startBoxPos.y) - (Screen.height - endBoxPos.y))), selectionBoxTexture);
 	}
 
 	private void moveCamera() {
@@ -66,6 +79,66 @@ public class UserInput : MonoBehaviour {
 
 		//moves camera
 		Camera.main.transform.position += translation;
+	}
+
+	private void MouseActivity() {
+		if(Input.GetMouseButton(0))
+			LeftMouseClick();
+		if(Input.GetMouseButton(1))
+			RightMouseClick();
+		if(Input.GetMouseButtonUp(0)) {
+			LeftMouseUp();
+		}
+	}
+
+	private void LeftMouseUp() {
+		RaycastHit hit1, hit2;
+		Physics.Raycast(Camera.main.ScreenPointToRay(startBoxPos), out hit1);
+		Physics.Raycast(Camera.main.ScreenPointToRay(endBoxPos), out hit2);
+		
+		Vector3 v1 = hit1.point;
+		Vector3 v2 = hit2.point;
+
+		if(player.Population > 0) {
+			Unit[] allUnits = player.OwnedUnits;
+			if(allUnits.Length == 0) return;
+			//deselects all selected units
+			player.Deselect();
+			
+			
+			foreach(Unit unit in allUnits) {
+				Vector3 pos = unit.transform.position;
+				if((pos.x > v1.x && pos.x < v2.x) && (pos.y < v1.y && pos.y > v1.y)) {
+					player.Select(unit);
+				}
+			}
+		}
+		
+		startBoxPos = Vector2.zero;
+		endBoxPos = Vector2.zero;
+	}
+
+	private void LeftMouseClick() {
+		if (Input.GetMouseButtonDown(0)) {
+			startBoxPos = Input.mousePosition;
+		}
+		endBoxPos = Input.mousePosition;		
+
+	}
+
+	private void RightMouseClick() {
+		RaycastHit hit;
+		Physics.Raycast(Camera.main.ScreenPointToRay(startBoxPos), out hit);
+		Vector3 destination = hit.point;
+		GameObject[] selectedObjects = player.SelectedObjects;
+		if (selectedObjects.Length > 0) {
+			foreach(GameObject go in selectedObjects) {
+				if(go is Unit) {
+					Unit u = go.GetComponent<Unit>();
+					u.StartMove(destination);
+				}
+			}
+		}
 	}
 
 }

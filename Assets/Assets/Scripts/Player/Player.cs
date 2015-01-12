@@ -8,8 +8,15 @@ public class Player : MonoBehaviour {
 	//check if human
 	public bool human;
 
-	void Start() {
+	private List<GameObject> selectedObjects;
+	public GameObject[] SelectedObjects {get {return selectedObjects.ToArray();}}
 
+	public List<Unit> ownedUnits;
+	public Unit[] OwnedUnits { get {return ownedUnits.ToArray();}}
+	public int Population { get {return ownedUnits.Count;}}
+
+	void Start() {
+		selectedObjects = new List<GameObject>();
 	}
 
 	void Awake() {
@@ -18,6 +25,16 @@ public class Player : MonoBehaviour {
 
 	void Update() {
 
+	}
+
+	public void Select(Unit unit) {
+		GameObject gameObject = unit.gameObject;
+		selectedObjects.Add(gameObject);
+		Debug.Log(gameObject);
+	}
+
+	public void Deselect() {
+		selectedObjects.Clear();
 	}
 }
 
