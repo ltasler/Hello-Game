@@ -8,12 +8,18 @@ public class Player : MonoBehaviour {
 	//check if human
 	public bool human;
 
+	/* handles everything a play has selected */
 	private List<GameObject> selectedObjects;
 	public GameObject[] SelectedObjects {get {return selectedObjects.ToArray();}}
 
+	/* Handles all unit under player command as well as calculates unit limit and current population */
 	public List<Unit> ownedUnits;
 	public Unit[] OwnedUnits { get {return ownedUnits.ToArray();}}
 	public int Population { get {return ownedUnits.Count;}}
+
+	/* Handles all buildings under play command and calculates population limit */
+	public List<Building> ownedBuildings;
+	public int PopulationLimit {get {int p=0; foreach (Building b in ownedBuildings) if(b is Housing) p+=b.populationSupport; return p;}}
 
 	void Start() {
 		selectedObjects = new List<GameObject>();
@@ -34,6 +40,11 @@ public class Player : MonoBehaviour {
 
 	public void Deselect() {
 		selectedObjects.Clear();
+	}
+
+	public void AddUnit(GameObject o) {
+		Unit u = o.GetComponent<Unit>();
+		ownedUnits.Add(u);
 	}
 }
 

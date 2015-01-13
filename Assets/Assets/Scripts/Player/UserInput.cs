@@ -134,7 +134,6 @@ public class UserInput : MonoBehaviour {
 		RaycastHit hit;
 		Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit);
 		Vector3 destination = hit.point;
-		Debug.Log (destination);
 		GameObject[] selectedObjects = player.SelectedObjects;
 		if (selectedObjects.Length > 0) {
 			foreach(GameObject go in selectedObjects) {
