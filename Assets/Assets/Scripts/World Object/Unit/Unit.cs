@@ -24,16 +24,30 @@ public class Unit : WorldObject {
 	
 	// Update is called once per frame
 	protected override void Update () {
-		if(unitState == State.moving)
-			Moving();
+		//if(unitState == State.moving)
+		//	Moving();
 	}
 
 	public void StartMove(Vector3 destination) {
-		Path p = seeker.StartPath(transform.position, destination);
+		Path p = seeker.StartPath(transform.position, destination, OnPathComplete);
 		if(!p.error) {
 			path = p;
 			currentWaypoint = 0;
 			unitState = State.moving;
+		}
+	}
+
+	public void OnPathComplete(Path p) {
+		if(!p.error) {
+			path = p;
+			currentWaypoint = 0;
+			unitState = State.moving;
+		}
+	}
+
+	void FixedUpdate() {
+		if(unitState == State.moving) {
+			Moving ();
 		}
 	}
 
@@ -42,6 +56,7 @@ public class Unit : WorldObject {
 			//We have no path to move after yet
 			return;   
 		}
+
 		//ends movement.. destination reached
 		if (currentWaypoint >= path.vectorPath.Count) {
 			Debug.Log ("End Of Path Reached");
@@ -51,7 +66,7 @@ public class Unit : WorldObject {
 		
 		//Direction to the next waypoint
 		Vector3 dir = (path.vectorPath[currentWaypoint]-transform.position).normalized;
-		dir *= movementSpeed * Time.deltaTime;
+		dir *= movementSpeed * Time.fixedDeltaTime;
 		characterController.SimpleMove (dir);
 		
 		//Check if we are close enough to the next waypoint

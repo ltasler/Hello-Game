@@ -84,7 +84,7 @@ public class UserInput : MonoBehaviour {
 	private void MouseActivity() {
 		if(Input.GetMouseButton(0))
 			LeftMouseClick();
-		if(Input.GetMouseButton(1))
+		if(Input.GetMouseButtonDown(1))
 			RightMouseClick();
 		if(Input.GetMouseButtonUp(0)) {
 			LeftMouseUp();
@@ -104,11 +104,16 @@ public class UserInput : MonoBehaviour {
 			if(allUnits.Length == 0) return;
 			//deselects all selected units
 			player.Deselect();
-			
-			
+
+			Rect selectionBox = new Rect(Mathf.Min(v1.x, v2.x),
+			                             Mathf.Min (v1.z, v2.z), 
+			                             Mathf.Abs (v1.x - v2.x), 
+			                             Mathf.Abs(v1.z - v2.z));
+		
 			foreach(Unit unit in allUnits) {
 				Vector3 pos = unit.transform.position;
-				if((pos.x > v1.x && pos.x < v2.x) && (pos.y < v1.y && pos.y > v1.y)) {
+				Vector2 pos2d = new Vector2(pos.x, pos.z);
+				if(selectionBox.Contains(pos2d)) {
 					player.Select(unit);
 				}
 			}
@@ -123,17 +128,17 @@ public class UserInput : MonoBehaviour {
 			startBoxPos = Input.mousePosition;
 		}
 		endBoxPos = Input.mousePosition;		
-
 	}
 
 	private void RightMouseClick() {
 		RaycastHit hit;
-		Physics.Raycast(Camera.main.ScreenPointToRay(startBoxPos), out hit);
+		Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit);
 		Vector3 destination = hit.point;
+		Debug.Log (destination);
 		GameObject[] selectedObjects = player.SelectedObjects;
 		if (selectedObjects.Length > 0) {
 			foreach(GameObject go in selectedObjects) {
-				if(go is Unit) {
+				if(go.GetComponent<Unit>()) {
 					Unit u = go.GetComponent<Unit>();
 					u.StartMove(destination);
 				}

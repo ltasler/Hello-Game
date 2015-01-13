@@ -30,7 +30,6 @@ public class Player : MonoBehaviour {
 	public void Select(Unit unit) {
 		GameObject gameObject = unit.gameObject;
 		selectedObjects.Add(gameObject);
-		Debug.Log(gameObject);
 	}
 
 	public void Deselect() {
