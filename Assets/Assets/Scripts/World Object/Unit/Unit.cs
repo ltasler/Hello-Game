@@ -13,6 +13,8 @@ public class Unit : WorldObject {
 	public float movementSpeed;
 	public float nextWaypointDistance;
 
+	private Vector3 movementDirection;
+
 	protected enum State {idle, moving};
 
 	// Use this for initialization
@@ -20,12 +22,18 @@ public class Unit : WorldObject {
 		seeker = GetComponent<Seeker>();
 		characterController = GetComponent<CharacterController>();
 		unitState = State.idle;
+		movementDirection = Vector3.zero;
 	}
 	
 	// Update is called once per frame
 	protected override void Update () {
-		//if(unitState == State.moving)
-		//	Moving();
+	
+	}
+
+	void FixedUpdate() {
+		if(unitState == State.moving) {
+			Moving ();
+		}
 	}
 
 	public void StartMove(Vector3 destination) {
@@ -45,12 +53,6 @@ public class Unit : WorldObject {
 		}
 	}
 
-	void FixedUpdate() {
-		if(unitState == State.moving) {
-			Moving ();
-		}
-	}
-
 	private void Moving() {
 		if (path == null) {
 			//We have no path to move after yet
@@ -67,7 +69,10 @@ public class Unit : WorldObject {
 		//Direction to the next waypoint
 		Vector3 dir = (path.vectorPath[currentWaypoint]-transform.position).normalized;
 		dir *= movementSpeed * Time.fixedDeltaTime;
-		characterController.SimpleMove (dir);
+		//if(dir != movementDirection) {
+		//	movementDirection = dir;
+			characterController.SimpleMove(dir);
+		//}
 		
 		//Check if we are close enough to the next waypoint
 		//If we are, proceed to follow the next waypoint

@@ -22,12 +22,15 @@ public class UserInput : MonoBehaviour {
 	//selection box start coordinate, end coordinate (on screen) and texture
 	private Vector2 startBoxPos, endBoxPos;
 	public Texture2D selectionBoxTexture;
+
+	private BuildManager bm;
 	
 	// Use this for initialization
 	void Start () {
 		player = GetComponent<Player>();
 		startBoxPos = Vector2.zero;
 		endBoxPos =  Vector2.zero;
+		bm = GetComponent<BuildManager>();
 	}
 	
 	// Update is called once per frame
@@ -82,12 +85,20 @@ public class UserInput : MonoBehaviour {
 	}
 
 	private void MouseActivity() {
-		if(Input.GetMouseButton(0))
-			LeftMouseClick();
-		if(Input.GetMouseButtonDown(1))
-			RightMouseClick();
-		if(Input.GetMouseButtonUp(0)) {
-			LeftMouseUp();
+		if(bm.PlayerBuilding) {
+			if(Input.GetMouseButtonDown(0))
+				bm.PlaceBuilding();
+			if(Input.GetMouseButtonDown(1))
+				bm.CancelBuilding();
+		}
+			else {
+			if(Input.GetMouseButton(0))
+				LeftMouseClick();
+			if(Input.GetMouseButtonDown(1))
+				RightMouseClick();
+			if(Input.GetMouseButtonUp(0)) {
+				LeftMouseUp();
+			}
 		}
 	}
 
@@ -144,7 +155,6 @@ public class UserInput : MonoBehaviour {
 			}
 		}
 	}
-
 }
 
 

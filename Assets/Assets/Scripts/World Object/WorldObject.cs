@@ -12,4 +12,5 @@ public abstract class WorldObject : MonoBehaviour {
 	
 	// Update is called once per frame
 	protected abstract void Update ();
+
 }

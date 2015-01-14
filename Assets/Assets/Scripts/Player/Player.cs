@@ -46,6 +46,21 @@ public class Player : MonoBehaviour {
 		Unit u = o.GetComponent<Unit>();
 		ownedUnits.Add(u);
 	}
+
+	public void RemoveUnit(GameObject o) {
+		Unit u = o.GetComponent<Unit>();
+		ownedUnits.Remove(u);
+	}
+
+	public void AddBuilding(GameObject o) {
+		Building b = o.GetComponent<Building>();
+		ownedBuildings.Add(b);
+	}
+
+	public void RemoveBuilding(GameObject o) {
+		Building b = o.GetComponent<Building>();
+		ownedBuildings.Remove(b);
+	} 
 }
 
 
