@@ -7,14 +7,12 @@ public class HUD : MonoBehaviour {
 	private Player player;
 	private GameObject panel;
 	private Text text;
-	private Button buildButton;
 
 	// Use this for initialization
 	void Start () {
 		player = GetComponent<Player>();
 		panel = GameObject.Find(gameObject.name + "/Canvas/Panel");
 		text = panel.GetComponentInChildren<Text>();
-		buildButton = panel.GetComponentInChildren<Button>();
 	}
 	
 	// Update is called once per frame

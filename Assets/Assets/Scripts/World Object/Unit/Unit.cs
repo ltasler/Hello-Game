@@ -13,7 +13,8 @@ public class Unit : WorldObject {
 	public float movementSpeed;
 	public float nextWaypointDistance;
 
-	private Vector3 movementDirection;
+	protected GameObject trainBuilding;
+	protected bool toTrain;
 
 	protected enum State {idle, moving};
 
@@ -22,7 +23,7 @@ public class Unit : WorldObject {
 		seeker = GetComponent<Seeker>();
 		characterController = GetComponent<CharacterController>();
 		unitState = State.idle;
-		movementDirection = Vector3.zero;
+		toTrain = false;
 	}
 	
 	// Update is called once per frame
@@ -39,9 +40,9 @@ public class Unit : WorldObject {
 	public void StartMove(Vector3 destination) {
 		Path p = seeker.StartPath(transform.position, destination, OnPathComplete);
 		if(!p.error) {
+			unitState = State.moving;
 			path = p;
 			currentWaypoint = 0;
-			unitState = State.moving;
 		}
 	}
 
@@ -61,8 +62,13 @@ public class Unit : WorldObject {
 
 		//ends movement.. destination reached
 		if (currentWaypoint >= path.vectorPath.Count) {
-			Debug.Log ("End Of Path Reached");
 			unitState = State.idle;
+			/*when unit reaches its destination and is supposed to train, it hides inside building and waits till training is complete */
+			if(toTrain && path.vectorPath.Count != 0) {
+				this.gameObject.transform.position = trainBuilding.transform.position;
+				Barracks b = trainBuilding.GetComponent<Barracks>();
+				b.StartTraining(this.gameObject);
+			}
 			return;
 		}
 		
@@ -80,4 +86,34 @@ public class Unit : WorldObject {
 			currentWaypoint++;
 		}
 	}
+
+	/* unit starts training in building given in parameter
+	 * @param	Gameobject building		building in which is about to train
+	 */
+	public void GoTrain(GameObject building) {
+		toTrain = true;
+		trainBuilding = building;
+		StartMove (building.transform.position);
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

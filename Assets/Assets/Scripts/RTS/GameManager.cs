@@ -15,5 +15,24 @@ namespace RTS {
 				return hit.point;
 			return InvalidPosition;
 		}
+
+		/*returns hitted world object as gameObject */
+		public static GameObject HitObject() {
+			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			RaycastHit hit;
+			if(Physics.Raycast(ray, out hit)) {
+				GameObject hitObject = hit.collider.gameObject;
+				if(hitObject) {
+					if(hitObject.GetComponent<WorldObject>()) {
+						return hitObject;
+					}
+					else if(hitObject.GetComponentInParent<WorldObject>()) {
+						WorldObject w = hitObject.GetComponentInParent<WorldObject>();
+						return w.gameObject;
+					} 
+				}
+			}
+			return null;
+		}
 	}
 }

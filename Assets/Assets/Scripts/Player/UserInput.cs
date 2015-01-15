@@ -145,12 +145,19 @@ public class UserInput : MonoBehaviour {
 		RaycastHit hit;
 		Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit);
 		Vector3 destination = hit.point;
+		GameObject hitObject = GameManager.HitObject();
 		GameObject[] selectedObjects = player.SelectedObjects;
 		if (selectedObjects.Length > 0) {
 			foreach(GameObject go in selectedObjects) {
 				if(go.GetComponent<Unit>()) {
 					Unit u = go.GetComponent<Unit>();
-					u.StartMove(destination);
+					if(hitObject) {
+						if(hitObject.GetComponent<Barracks>())
+							u.GoTrain(hitObject);
+					}
+					else {
+						u.StartMove(destination);
+					}
 				}
 			}
 		}

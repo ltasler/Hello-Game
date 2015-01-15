@@ -42,6 +42,10 @@ public class Player : MonoBehaviour {
 		selectedObjects.Clear();
 	}
 
+	public void DeselectUnit(GameObject unit) {
+		selectedObjects.Remove(unit);
+	}
+
 	public void AddUnit(GameObject o) {
 		Unit u = o.GetComponent<Unit>();
 		ownedUnits.Add(u);

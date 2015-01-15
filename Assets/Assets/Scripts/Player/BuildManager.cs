@@ -6,7 +6,7 @@ public class BuildManager : MonoBehaviour {
 
 	private Player player;
 
-	//array of all building's prefabs
+	//array of all buildings that are possible to build
 	public GameObject[] buildings;
 
 	private GameObject toBuild;

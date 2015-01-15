@@ -6,7 +6,7 @@ public class Building : WorldObject {
 	protected Vector3 spawnPoint;
 
 	protected float creationProgress;
-	public GameObject unit;
+	public GameObject unit; /*unit to be build here prefab */
 	public float creationSpeed; /* how many seconds till new unit */
 
 	public int populationSupport; /* how many units is able to support */
@@ -28,13 +28,14 @@ public class Building : WorldObject {
 			CreateNewUnit();
 	}
 	
-	protected void CreateNewUnit() {
-		if(owner.Population < owner.PopulationLimit) {
+	protected virtual void CreateNewUnit() {
+		if(owner.Population < owner.PopulationLimit || this is Barracks) {
 			if(creationProgress >= 1) {
 				Vector3 unitSize = unit.renderer.bounds.size;
 				/* this could be possible performance issue.. have to check */
 				Vector3 newSpawnPoint = spawnPoint;
-				while(Physics.CheckSphere(newSpawnPoint, unitSize.z)) {
+				newSpawnPoint.y =terrain.SampleHeight(newSpawnPoint) + unitSize.y/2;
+				while(Physics.CheckSphere(newSpawnPoint, unitSize.z/2)) {
 					Vector3 rand = new Vector3(Random.Range(-10f, 10f), 0, Random.Range(-10f, 10f));
 					rand.Normalize();
 					newSpawnPoint += rand ;
@@ -60,5 +61,4 @@ public class Building : WorldObject {
 		terrain = Terrain.activeTerrain;
 		spawnPoint.y = terrain.SampleHeight(spawnPoint) + unit.renderer.bounds.size.y;
 	}
-
 }
