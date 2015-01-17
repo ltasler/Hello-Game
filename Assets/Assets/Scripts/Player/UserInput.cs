@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using RTS;
 
@@ -91,7 +91,7 @@ public class UserInput : MonoBehaviour {
 			if(Input.GetMouseButtonDown(1))
 				bm.CancelBuilding();
 		}
-			else {
+		else {
 			if(Input.GetMouseButton(0))
 				LeftMouseClick();
 			if(Input.GetMouseButtonDown(1))
@@ -122,10 +122,12 @@ public class UserInput : MonoBehaviour {
 			                             Mathf.Abs(v1.z - v2.z));
 		
 			foreach(Unit unit in allUnits) {
-				Vector3 pos = unit.transform.position;
-				Vector2 pos2d = new Vector2(pos.x, pos.z);
-				if(selectionBox.Contains(pos2d)) {
-					player.Select(unit);
+				if(unit) { 
+					Vector3 pos = unit.transform.position;
+					Vector2 pos2d = new Vector2(pos.x, pos.z);
+					if(selectionBox.Contains(pos2d)) {
+						player.Select(unit);
+					}
 				}
 			}
 		}
@@ -151,18 +153,40 @@ public class UserInput : MonoBehaviour {
 			foreach(GameObject go in selectedObjects) {
 				if(go.GetComponent<Unit>()) {
 					Unit u = go.GetComponent<Unit>();
-					if(hitObject) {
-						if(hitObject.GetComponent<Barracks>())
-							u.GoTrain(hitObject);
+					if(hitObject && hitObject.GetComponent<WorldObject>()) { /* if an object has been hitted */
+						ClickedOnObject(u, hitObject);
 					}
 					else {
-						u.StartMove(destination);
+						ClickedOnGround(u, destination); /*what happens if player clicked on ground */
 					}
 				}
 			}
 		}
 	}
+
+	//when right clicked on object
+	private void ClickedOnObject(Unit unit, GameObject hitObject) {
+
+		Debug.Log(hitObject);
+		WorldObject wo = hitObject.GetComponent<WorldObject>();
+
+		if(wo is Barracks && wo.Owner == player) /*if own barracks have been hitted */ 
+			unit.GoTrain(hitObject);
+
+		else if (wo.Owner != player) {
+			unit.Attack(hitObject);
+		}
+	}
+
+	private void ClickedOnGround(Unit unit, Vector3 destination) {
+		if(Input.GetKey(KeyCode.Q))
+			unit.AttackMove(destination);
+		else
+			unit.StartMove(destination);
+	}
+	
 }
+
 
 
 

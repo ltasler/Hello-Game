@@ -37,6 +37,7 @@ public class BuildManager : MonoBehaviour {
 		foreach(GameObject go in buildings) {
 			if(buildingName.Equals(go.name)) {
 				toBuild = Instantiate(go) as GameObject;
+				GameManager.SetOwner(toBuild, player);
 				playerBuilding = true;
 				toBuild.transform.position = GameManager.MouseToWorldPosition();
 				toBuild.collider.enabled = false;

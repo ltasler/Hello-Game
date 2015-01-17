@@ -10,8 +10,8 @@ public class HUD : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		player = GetComponent<Player>();
-		panel = GameObject.Find(gameObject.name + "/Canvas/Panel");
+		player = GetComponentInParent<Player>();
+		panel = GameObject.Find(gameObject.name + "/Panel");
 		text = panel.GetComponentInChildren<Text>();
 	}
 	
@@ -27,7 +27,7 @@ public class HUD : MonoBehaviour {
 	}
 
 	void Draw() {
-		if(player.SelectedObjects.Length > 0) {
+		if(player.SelectedObjects.Length > 0 && player.SelectedObjects[0]) {
 			string selectionName = player.SelectedObjects[0].name;
 			text.text = selectionName;
 		}

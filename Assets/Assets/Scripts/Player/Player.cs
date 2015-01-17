@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
 public class Player : MonoBehaviour {
@@ -7,6 +7,10 @@ public class Player : MonoBehaviour {
 	public string username;
 	//check if human
 	public bool human;
+
+	//player's color
+	public Color playerColor;
+	public Color PlayerColor {get {return playerColor;}}
 
 	/* handles everything a play has selected */
 	private List<GameObject> selectedObjects;

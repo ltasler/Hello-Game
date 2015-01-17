@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
+using RTS;
 
 public class Building : WorldObject {
 
@@ -20,14 +21,16 @@ public class Building : WorldObject {
 		if(isBuilt) { /* to initialize builds present from begining */
 			StartBuilding(owner);
 		}
+		base.Start ();
 	}
 	
 	// Update is called once per frame
 	protected override void Update () {
+		base.Update();
 		if(isBuilt) 
 			CreateNewUnit();
 	}
-	
+
 	protected virtual void CreateNewUnit() {
 		if(owner.Population < owner.PopulationLimit || this is Barracks) {
 			if(creationProgress >= 1) {
@@ -42,6 +45,7 @@ public class Building : WorldObject {
 				}
 				
 				GameObject u = Instantiate(unit, newSpawnPoint, Quaternion.identity) as GameObject;
+				GameManager.SetOwner(u, owner);
 				owner.AddUnit(u);
 				creationProgress -= 1;
 			}

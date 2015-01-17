@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 namespace RTS {
@@ -33,6 +33,12 @@ namespace RTS {
 				}
 			}
 			return null;
+		}
+
+		/* Sets the owner of given game object */
+		public static void SetOwner(GameObject go, Player player) {
+			WorldObject obj = go.GetComponent<WorldObject>();
+			obj.Owner = player;
 		}
 	}
 }
