@@ -1,7 +1,8 @@
 # Hello-Game
 Learning project for scripting
 
-#•Cilj Igre: Uničiti vse sovražnikove (rdeče) enote in zgradbe.
+#•Cilj Igre: 
+Uničiti vse sovražnikove (rdeče) enote in zgradbe.
 
 #• Zgradbe: 
    ◦ House: Vsaka hiša poveča največje število dovoljenih enot za 5, kot tudi proizvaja čez čas (eno enoto imenovano
@@ -28,5 +29,5 @@ Learning project for scripting
     teren in nova hiša/barake že stojijo. ◦ Izbranim enotam se poda ukaz tako, da z desnim klikom na miško kliknemo na
     željeno lokacijo. 
     
-#• V igro je tudi importan A* Pathfinding Project, s pomočjo katerega sem lažje implementeral premike enot:
-  http://arongranberg.com/astar/docs/index.php 
+#• Importani projekti
+A* Pathfinding Project, link: http://arongranberg.com/astar/docs/index.php 
