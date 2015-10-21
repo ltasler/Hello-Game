@@ -1,12 +1,12 @@
 # Hello-Game
 Learning project for scripting
 
-Cilj Igre: Uničiti vse sovražnikove (rdeče) enote in zgradbe.
+#•Cilj Igre: Uničiti vse sovražnikove (rdeče) enote in zgradbe.
 
 #• Zgradbe: 
-  ##◦ House: Vsaka hiša poveča največje število dovoljenih enot za 5, kot tudi proizvaja čez čas (eno enoto imenovano
+  ## ◦ House: Vsaka hiša poveča največje število dovoljenih enot za 5, kot tudi proizvaja čez čas (eno enoto imenovano
     “vilen” na 10 sekund) nove enote, katere proizvaja vse dokler jih lahko, oz. Je dosežen population limit.
-  ##◦ Barracks: V tej zgradbi se osnovne enote natrenirajo za vojskovanje, ter dobijo meč in ščit. Proizvaja enoto 
+  ## ◦ Barracks: V tej zgradbi se osnovne enote natrenirajo za vojskovanje, ter dobijo meč in ščit. Proizvaja enoto 
     imenovana “fajter”, ki je osnovna enota za vojskovanje. Vanjo se lahko pošlje katerokoli enoto.
   
 #• Enote: 
