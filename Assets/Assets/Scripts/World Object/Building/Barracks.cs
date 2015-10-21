@@ -30,7 +30,6 @@ public class Barracks : Building {
 	} 
 
 	protected override void CreateNewUnit () {
-		Debug.Log (unitsToTrain.Count);
 		if(unitsToTrain.Count == 0) {
 			isTraining = false;
 			creationProgress = 0;

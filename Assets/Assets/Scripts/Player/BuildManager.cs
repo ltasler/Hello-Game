@@ -27,7 +27,7 @@ public class BuildManager : MonoBehaviour {
 	void Update () {
 		if(player && player.human && playerBuilding) {
 			Vector3 mouseWorldPosition = GameManager.MouseToWorldPosition();
-			mouseWorldPosition.y = terrain.SampleHeight(mouseWorldPosition) + toBuild.renderer.bounds.size.y;
+			mouseWorldPosition.y = terrain.SampleHeight(mouseWorldPosition);
 			toBuild.transform.position = mouseWorldPosition;
 		}
 	}
@@ -40,7 +40,7 @@ public class BuildManager : MonoBehaviour {
 				GameManager.SetOwner(toBuild, player);
 				playerBuilding = true;
 				toBuild.transform.position = GameManager.MouseToWorldPosition();
-				toBuild.collider.enabled = false;
+				toBuild.GetComponent<Collider>().enabled = false;
 			}
 		}
 	}
@@ -60,8 +60,8 @@ public class BuildManager : MonoBehaviour {
 	/* Building is placed on clicked location */
 	public void PlaceBuilding() {
 		if(playerBuilding) {
-			toBuild.collider.enabled = true;
-			AstarPath.active.UpdateGraphs(toBuild.collider.bounds); /*refresh graphs so units wont go trough buildings */
+			toBuild.GetComponent<Collider>().enabled = true;
+			AstarPath.active.UpdateGraphs(toBuild.GetComponent<Collider>().bounds); /*refresh graphs so units wont go trough buildings */
 			toBuild.GetComponent<Building>().StartBuilding(player);
 			player.AddBuilding(toBuild);
 			StopBuilding();

@@ -5,196 +5,302 @@ using RTS;
 
 public class Unit : WorldObject {
 
-	private Seeker seeker; //seeker component
-	private CharacterController characterController; //charachter controller (SimpleMove(direction))
-	private Path path; //unit's current path
-	private int currentWaypoint; // current waypoint on which unit is
+	#region parameters
 
-	private State unitState; //state of unit
-	protected enum State {idle, moving, attack}; //possible states that unit can take
-
+	protected Seeker seeker; //seeker component
+	protected CharacterController characterController; //charachter controller (SimpleMove(direction))
+	protected Path path; //unit's current path
+	protected int currentWaypoint; // current waypoint on which unit is
+	
+	protected State unitState; //state of unit
+	protected enum State {idle, moving, attack, attack_move, onTraining, choppin, buildin}; //possible states that unit can take
+	
 	public float movementSpeed; //speed of unit
 	public float nextWaypointDistance; // a* something
-
-	protected GameObject trainBuilding; //if unit is training it is training in that building
-	protected bool toTrain; //if unit is training (desibles all funcunality if it is)
 
 	public float attackDamage;
 	public float attackSpeed;
 	public float attackRange;
 
+	protected const float ATTACK_SPEED_MULTIPLYER = 100;
+	
 	//unit's radius of detecteing units and also fog of war?
-	public float detectionRadius;
-
+	public float sight;
+	
 	/*Unit's target */
-	private GameObject target;
-	private Vector3 lastknownTargetPosition;
-
+	protected GameObject target;
+	
 	/*1 when redy to strike less then 1 when not */
-	private float readyToAttack;
+	protected float readyToAttack;
 
-	/* if unit ordered to perform attack move it will remember destination and went there */
-	private Vector3 attackMoveDestination;
-	private GraphNode node; /* node on which unit was last before randomly attacking */
+	#endregion
 
+	#region Unity's functions
+	protected override void Start (){
+		base.Start ();
 
-	#region unity's methods
-	// Use this for initialization
-	protected override void  Start () {
-		lastknownTargetPosition = GameManager.InvalidPosition;
-		attackMoveDestination = GameManager.InvalidPosition;
+		currentWaypoint = 0;
 		seeker = GetComponent<Seeker>();
 		characterController = GetComponent<CharacterController>();
 		unitState = State.idle;
-		toTrain = false;
-		base.Start();
 	}
-	
-	// Update is called once per frame
-	protected override void Update () {
+
+	protected override void Update() {
 		base.Update();
-		readyToAttack += Time.deltaTime/attackSpeed;
-		if(unitState == State.idle) {
-			AttackNearby();
+		RefreshPathTimer();
+		switch (unitState) {
+		case State.onTraining:
+			Training();
+			break;
+		case State.moving:
+			Moving();
+			break;
+		case State.attack:
+			Attacking();
+			break;
+		case State.idle:
+			if(EnemyInSight()) {
+				target = FindNearestEnemy();
+				unitState = State.attack;
+			}
+			break;
 		}
-		else if(target) {
-			AttackTarget();
-		}
-		else if (unitState == State.attack)
-			unitState = State.idle;
-	}
-
-	void FixedUpdate() {
-		if(unitState == State.moving) {
-			Moving ();
-		}
-	}
-	#endregion
-
-	#region unit attack capabilities
-	private void AttackTarget() {
-		float TargetDistance = Vector3.Distance(target.transform.position, this.transform.position);
-		if(TargetDistance < attackRange) {
-			Strike();
-		}
-		else {
-			MoveToTarget();
-		}
-	}
-
-	private void Strike() {
-		unitState = State.attack;
-		if(readyToAttack >= 1) {
-			WorldObject wo = target.GetComponent<WorldObject>();
-			wo.Hit(attackDamage);
-		}
-	}
-
-	/* Unit, moves to targed and attacks it */
-	public void Attack(GameObject toAttack) {
-		target = toAttack;
-		lastknownTargetPosition = target.transform.position;
-		seeker.StartPath(transform.position, toAttack.transform.position, OnPathComplete);
-	}
-	
-	/*stops targeting a unit, called always when performing any other action then attacking */
-	private void Disengage() {
-		target = null;
-		lastknownTargetPosition = GameManager.InvalidPosition;
+		if(!isReadyToAttack()) 
+			readyToAttack += (attackSpeed * Time.deltaTime) / ATTACK_SPEED_MULTIPLYER;
 	}
 
 	#endregion
 
-	#region unit's movement capabilities
-	private void MoveToTarget() {
-		if(target.transform.position != lastknownTargetPosition || lastknownTargetPosition == GameManager.InvalidPosition)
-			seeker.StartPath(transform.position, target.transform.position, OnPathComplete);
-
-	}
-
-	public void StartMove(Vector3 destination) {
-		Disengage();
-		seeker.StartPath(transform.position, destination, OnPathComplete);
-		if(toTrain)
-			toTrain = false;
-	}
-
-	public void OnPathComplete(Path p) {
-		if(!p.error) {
-			path = p;
-			currentWaypoint = 0;
-			unitState = State.moving;
-		}
-	}
-
-	private void Moving() {
-		if (path == null) {
-			//We have no path to move after yet
-			return;   
-		}
-
-		//ends movement.. destination reached
-		if (currentWaypoint >= path.vectorPath.Count) {
-			unitState = State.idle;
-			/*when unit reaches its destination and is supposed to train, it hides inside building and waits till training is complete */
-			if(toTrain && path.vectorPath.Count != 0) {
-				this.gameObject.transform.position = trainBuilding.transform.position;
-				Barracks b = trainBuilding.GetComponent<Barracks>();
+	#region update functions
+	//unit is in training buillding or is on its way to there
+	//TODO
+	protected void Training() {
+		if(path != null) {
+			if(EndOfPath()) {
+				unitState = State.idle;
+				this.gameObject.transform.position = target.transform.position;
+				Barracks b = target.GetComponent<Barracks>();
 				b.StartTraining(this.gameObject);
 			}
+			else {
+				Moving();
+			}
+		}
+	}
+
+	//unit moves on it's calucated path
+	protected void Moving() {
+		if(path == null)
+			return;
+
+		//unit has come to the end of path
+		if(EndOfPath()) {
+			unitState = State.idle;
+			path = null;
 			return;
 		}
-		
-		//Direction to the next waypoint
+
 		Vector3 dir = (path.vectorPath[currentWaypoint]-transform.position).normalized;
-		dir *= movementSpeed * Time.fixedDeltaTime;
-		//if(dir != movementDirection) {
-		//	movementDirection = dir;
-			characterController.SimpleMove(dir);
-		//}
-		
-		//Check if we are close enough to the next waypoint
-		//If we are, proceed to follow the next waypoint
-		if (Vector3.Distance (transform.position,path.vectorPath[currentWaypoint]) < nextWaypointDistance) {
+		dir *= movementSpeed * Time.deltaTime;
+		Vector3 lookingDirection = transform.forward;
+		Vector3 goingDirection = path.vectorPath[currentWaypoint].normalized;
+		if(lookingDirection != goingDirection) {
+			Vector3 lookAt = path.vectorPath[currentWaypoint];
+			lookAt.y = transform.position.y;
+			transform.LookAt(lookAt);
+		}
+		characterController.SimpleMove(dir);
+
+		//onward to next waypoint may pesants! :D
+		if(Vector3.Distance(transform.position, path.vectorPath[currentWaypoint]) < nextWaypointDistance) {
 			currentWaypoint++;
 		}
 	}
 
+	protected void Attacking() {
+		if(target) {
+
+			if(TargetInRange() && isReadyToAttack()) { //if target is in range and unit prepared to attack, let him hit the enemy unit
+				WorldObject wo = target.GetComponent<WorldObject>();
+				wo.Hit(attackDamage);
+				readyToAttack = 0.0f;
+				transform.LookAt(new Vector3(target.transform.position.x, transform.position.y, target.transform.position.z));
+			} 
+
+
+			else if(!TargetInRange() && CanRefreshPathAndReset() && HasTargetMoved()){ //or enemy unit is not in attacking range of this, so it moves closer
+				Vector3 dest = target.transform.position;
+				seeker.StartPath(transform.position, dest, OnPathComplete);
+			}
+
+			if(!TargetInRange()) {
+				if(path == null)
+					Attack(target);
+				else
+					Moving();
+			}
+		} 
+
+		//unit has no target.. therefor entering idle mode
+		else {
+			unitState = State.idle;
+		}
+	}
 	#endregion
 
-	/* unit starts training in building given in parameter
-	 * @param	Gameobject building		building in which is about to train
-	 */
-	public void GoTrain(GameObject building) {
-		Disengage();
-		toTrain = true;
-		trainBuilding = building;
-		Vector3 destination = building.transform.position;
-		seeker.StartPath(transform.position, destination, OnPathComplete);
+	#region call's functions
+	public void GoTrain(GameObject hitObject) {
+		target = hitObject;
+		unitState = State.onTraining;
+		Vector3 dest = hitObject.transform.position;
+		dest.x += (hitObject.GetComponent<Renderer>().bounds.size.x/2) * hitObject.transform.forward.x;
+		dest.y += (hitObject.GetComponent<Renderer>().bounds.size.y/2) * hitObject.transform.forward.y;
+		dest.z += (hitObject.GetComponent<Renderer>().bounds.size.z/2) * hitObject.transform.forward.z;
+		seeker.StartPath(transform.position, dest, OnPathComplete);
 	}
 
+	public void Attack(GameObject hitObject) {
+		target = hitObject;
+		unitState = State.attack;
+		seeker.StartPath(transform.position, hitObject.transform.position, OnPathComplete);
 
-	public void AttackMove(Vector3 destination) {
-		//ATTACK MOVE TODO
-		attackMoveDestination = destination;
 	}
 
-	/* Method makes unit attack nerby units */
+	public void StartMove(Vector3 dest) {
+		target = null;
+		if(Input.GetKey(KeyCode.LeftShift))
+			unitState = State.attack_move;
+		else 
+			unitState = State.moving;
+		seeker.StartPath (transform.position, dest, OnPathComplete);
+	}
 
-	private void AttackNearby() {
-		Collider[] hitColliders = Physics.OverlapSphere(transform.position, detectionRadius);
-		foreach(Collider c in hitColliders) {
-			if(c.gameObject.GetComponent<WorldObject>()) {
-				WorldObject wo = c.gameObject.GetComponent<WorldObject>();
-				if(wo.Owner != owner) {
-					Attack (wo.gameObject);
-					Debug.Log (wo.gameObject);
-					return;
-				}
+	#endregion
+
+	#region override functions
+
+	public override void Hit (float damage) {
+		base.Hit (damage);
+/*
+		if(unitState == State.idle) {
+
+			GameObject hitter = FindNearestEnemy();
+			
+			float radius = sight;
+			while (hitter == null) {
+				radius *= sight;
+				hitter = FindNearestEnemy(radius);
+			}
+
+			if(hitter != null) 
+				Attack(hitter);
+		}*/
+	}	
+
+	#endregion
+
+	#region aid functions
+	protected bool TargetInRange() {
+		float distance = Vector3.Distance(target.transform.position, gameObject.transform.position);
+		if(distance <= attackRange)
+			return true;
+
+		 if (target.GetComponent<Building>() && distance <= attackRange + 5)
+			return true;
+		return false;
+	}
+
+	public void OnPathComplete(Path p) {
+		if(!p.error) {
+			if(p != path) {
+				path = p;
+				currentWaypoint = 0;
 			}
 		}
 	}
+
+	protected bool EnemyInSight() {
+		GameObject o = FindNearestEnemy();
+		if(o)
+			return true;
+		return false;
+	}
+
+	protected GameObject FindNearestEnemy() {
+		return FindNearestEnemy(sight);
+	}
+
+	protected GameObject FindNearestEnemy(float radius) {
+		Collider[] hitColliders = Physics.OverlapSphere(transform.position, radius);
+
+		foreach(Collider c in hitColliders) {
+			if(c.gameObject.GetComponent<Unit>() || c.gameObject.GetComponent<Building>()) {
+				WorldObject wo = c.gameObject.GetComponent<WorldObject>();
+				if(wo.Owner != Owner) {
+					return c.gameObject;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	protected bool isReadyToAttack() {
+		if(readyToAttack >= 1)
+			return true;
+		return false;
+	}
+
+	protected bool EndOfPath() {
+		if(currentWaypoint >= path.vectorPath.Count)
+			return true;
+		return false;
+	}
+
+	//limits path refreshing for seeking targets every 0.25s (4 times per second maximum if neccesary
+	protected float refreshTimer = 0.0f;
+	protected const float REFRESH_TIME_LIMITER = 0.25f;
+
+	//updates every frame counter for path refreshing when units attack 
+	protected void RefreshPathTimer() {
+		if(!CanRefreshPath()) {
+			refreshTimer += Time.deltaTime;
+		}
+	}
+
+	protected bool CanRefreshPath() {
+		if(refreshTimer >= REFRESH_TIME_LIMITER)
+			return true;
+		else
+			return false;
+	}
+
+	protected bool CanRefreshPathAndReset() {
+		bool canRefresh = CanRefreshPath();
+		if(canRefresh) 
+			refreshTimer = 0.0f;
+
+		return canRefresh;
+	}
+
+	protected bool HasTargetMoved() {
+		if(target == null || path == null)
+			return false;
+		Vector3 tv = target.transform.position;
+		Vector3 v3 = path.vectorPath[path.vectorPath.Count-1];
+		if(Vector3.Distance(tv, v3) == 1)
+			return true;
+		return false;
+	}
+
+	#endregion
 }
+
+
+
+
+
+
 
 
 

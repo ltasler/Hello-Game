@@ -19,11 +19,13 @@ public class Player : MonoBehaviour {
 	/* Handles all unit under player command as well as calculates unit limit and current population */
 	public List<Unit> ownedUnits;
 	public Unit[] OwnedUnits { get {return ownedUnits.ToArray();}}
-	public int Population { get {return ownedUnits.Count;}}
+	public int Population { get {int i = 0; for(int j = 0; j < ownedUnits.Count; j++) if(ownedUnits[j]) i++; return i; }}
 
 	/* Handles all buildings under play command and calculates population limit */
 	public List<Building> ownedBuildings;
 	public int PopulationLimit {get {int p=0; foreach (Building b in ownedBuildings) if(b is Housing) p+=b.populationSupport; return p;}}
+
+	private const int SELECTION_LIMIT = 10;
 
 	void Start() {
 		selectedObjects = new List<GameObject>();
@@ -39,10 +41,11 @@ public class Player : MonoBehaviour {
 
 	public void Select(Unit unit) {
 		GameObject gameObject = unit.gameObject;
-		selectedObjects.Add(gameObject);
+		if(selectedObjects.Count <= SELECTION_LIMIT) 
+			selectedObjects.Add(gameObject);
 	}
 
-	public void Deselect() {
+	public void DeselectAll() {
 		selectedObjects.Clear();
 	}
 
@@ -56,8 +59,10 @@ public class Player : MonoBehaviour {
 	}
 
 	public void RemoveUnit(GameObject o) {
-		Unit u = o.GetComponent<Unit>();
-		ownedUnits.Remove(u);
+		if(o) {
+			Unit u = o.GetComponent<Unit>();
+			ownedUnits.Remove(u);
+		}
 	}
 
 	public void AddBuilding(GameObject o) {

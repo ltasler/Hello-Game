@@ -12,7 +12,7 @@ public class UserInput : MonoBehaviour {
 	private const int SCROLL_SPEED = 40;
 	
 	private const int ZOOM_SPEED = 35;
-	private const int ZOOM_MIN = 30;
+	private const int ZOOM_MIN = 10;
 	private const int ZOOM_MAX = 120;
 	
 	private const int PAN_SPEED = 40;
@@ -114,7 +114,7 @@ public class UserInput : MonoBehaviour {
 			Unit[] allUnits = player.OwnedUnits;
 			if(allUnits.Length == 0) return;
 			//deselects all selected units
-			player.Deselect();
+			player.DeselectAll();
 
 			Rect selectionBox = new Rect(Mathf.Min(v1.x, v2.x),
 			                             Mathf.Min (v1.z, v2.z), 
@@ -167,7 +167,6 @@ public class UserInput : MonoBehaviour {
 	//when right clicked on object
 	private void ClickedOnObject(Unit unit, GameObject hitObject) {
 
-		Debug.Log(hitObject);
 		WorldObject wo = hitObject.GetComponent<WorldObject>();
 
 		if(wo is Barracks && wo.Owner == player) /*if own barracks have been hitted */ 
@@ -179,9 +178,6 @@ public class UserInput : MonoBehaviour {
 	}
 
 	private void ClickedOnGround(Unit unit, Vector3 destination) {
-		if(Input.GetKey(KeyCode.Q))
-			unit.AttackMove(destination);
-		else
 			unit.StartMove(destination);
 	}
 	
